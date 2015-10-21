@@ -111,7 +111,7 @@
 		autoFocus            : true,
         autoCloseTags        : true,
         searchReplace        : true,
-        syncScrolling        : true,           // true | false | "single", default true
+        syncScrolling        : false,           // true | false | "single", default true
         readOnly             : false,
         tabSize              : 4,
 		indentUnit           : 4,

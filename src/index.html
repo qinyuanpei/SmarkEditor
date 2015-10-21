@@ -5,11 +5,10 @@
         <title>SmarkEditor</title>
         <link rel="stylesheet" href="css/editormd.css" />
     </head>
-    <body style="overflow: hidden;">
+    <body>
         <div id="layout">
             <div id="test-editormd">                
-                <textarea id="textarea" style="display:none;">
-                # 欢迎使用 SmarkEditor 编辑器
+                <textarea id="textarea" style="display:none;"># 欢迎使用 SmarkEditor 编辑器
 
 SmarkEditor是一款基于[Editor.md](https://pandao.github.io/editor.md)的Markdown离线编辑器，通过这个编辑器你可以更加专注于写作本身，SmarkEditor可以帮助你快速撰写技术文章或者是学术论文，它提供了基本的**Markdown**支持（普通文章写作）、**代码高亮**支持（技术文章写作）和**LaTeX**支持（学术文章写作）。你可以从[这里]()获取SmarkEditor，目前SmarkEditor仅仅提供了Windows平台的支持。
 
@@ -89,7 +88,7 @@ Bob-->Alice: I am good thanks!
                 //定义编辑器属性
                 var editor = editormd("test-editormd", {
                     width: "100%",
-                    height: "760",
+                    height: "100%",
                     path : 'lib/', //因为改变了项目结构，所以这里的路径发生了变化
                     watch : true,
                     tex : true,  //开启LTex支持
@@ -102,14 +101,23 @@ Bob-->Alice: I am good thanks!
                     //定义编辑器主题
                     theme : "default",
                     previewTheme : "default",
-                    editorTheme : "pastel-on-dark",
-                    toolbarIcons : ["undo","redo","|","file","open","save","|","bold", "italic","|","link", "quote","code","image","|","hr","list-ol","list-ul","table","datetime","||","pdf","html", "preview","help","info"],
+                    editorTheme : "default",
+                    toolbarIcons : [
+                    "undo", "redo", "|",
+                     "file_new","file_open","file_save","|",
+                     "bold", "italic", "quote", "ucwords", "uppercase", "lowercase", "|", 
+                     "list-ul", "list-ol", "hr", "|", 
+                     "link", "reference-link", "image", "code", "preformatted-text", "code-block", "|",
+                     "table" , "datetime", "emoji", "html-entities", "pagebreak", "|", 
+                     "goto-line", "watch", "preview", "fullscreen", "clear", "search", "||",
+                     "pdf","html","help", "info"
+                    ],
 
                     //定义工具栏图标
                     toolbarIconsClass : {
-                        file : "fa-file",
-                        open : "fa-folder-open",
-                        save : "fa-save",
+                        file_new : "fa-file",
+                        file_open : "fa-folder-open",
+                        file_save : "fa-save",
                         pdf  : "fa-print",
                         html : "fa-download"
                     },
@@ -117,9 +125,9 @@ Bob-->Alice: I am good thanks!
                     ///定义工具栏提示文本
                     lang : {
                         toolbar : {
-                            file : "新建",
-                            open : "打开",
-                            save : "保存", 
+                            file_new : "新建",
+                            file_open : "打开",
+                            file_save : "保存", 
                             pdf : "导出为PDF",
                             html : "导出为HTML"
                         }
@@ -133,7 +141,7 @@ Bob-->Alice: I am good thanks!
                          * @param {Object}      cursor     CodeMirror的光标对象，可获取光标所在行和位置
                          * @param {String}      selection  编辑器选中的文本
                          */
-                        file : function(cm, icon, cursor, selection) {
+                        file_new : function(cm, icon, cursor, selection) {
 
                             //清空编辑器内容
                             editor.setMarkdown("");
@@ -143,11 +151,11 @@ Bob-->Alice: I am good thanks!
                             setWindowTitle("新建Markdown文件-SmarkEditor")
                         },
                         
-                        open : function(cm, icon, cursor, selection) {
+                        file_open : function(cm, icon, cursor, selection) {
                             $("#fileOpen").trigger("click");
                         },
 
-                        save : function(cm, icon, cursor, selection) {
+                        file_save : function(cm, icon, cursor, selection) {
                             //设置存储类型为markdown
                             saveMode="markdown";
                             //如果文件从未保存则弹出对话框进行保存
@@ -165,10 +173,10 @@ Bob-->Alice: I am good thanks!
                             saveMode="html";
                             //否则直接进行保存
                             $("#fileSave").trigger("click");
-                        
                         }
                     },
                     onload : function(){
+                        initWindow();
                         //console.log("test");
                         //$("[type=\"file\"]").bind("change", function(){
                            // alert($(this).val());
