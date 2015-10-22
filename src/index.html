@@ -7,7 +7,7 @@
     </head>
     <body>
         <div id="layout">
-            <div id="test-editormd">                
+            <div id="editormd">                
                 <textarea id="textarea" style="display:none;"># 欢迎使用 SmarkEditor 编辑器
 
 SmarkEditor是一款基于[Editor.md](https://pandao.github.io/editor.md)的Markdown离线编辑器，通过这个编辑器你可以更加专注于写作本身，SmarkEditor可以帮助你快速撰写技术文章或者是学术论文，它提供了基本的**Markdown**支持（普通文章写作）、**代码高亮**支持（技术文章写作）和**LaTeX**支持（学术文章写作）。你可以从[这里]()获取SmarkEditor，目前SmarkEditor仅仅提供了Windows平台的支持。
@@ -76,7 +76,7 @@ Bob-->Alice: I am good thanks!
             </div>
         </div> 
         <input style="display:none;" id="fileOpen" type="file" accept=".md"/>
-        <input style="display:none;" id="fileSave" type="file" nwsaveas/>      
+        <input style="display:none;" id="fileSave" type="file" nwsaveas="default"/>      
         <script src="jquery.min.js"></script>
         <script src="editormd.js"></script>
         <script type="text/javascript">
@@ -86,9 +86,9 @@ Bob-->Alice: I am good thanks!
                 var saveMode = "markdown";
 
                 //定义编辑器属性
-                var editor = editormd("test-editormd", {
+                var editor = editormd("editormd", {
                     width: "100%",
-                    height: "100%",
+                    height: "720",
                     path : 'lib/', //因为改变了项目结构，所以这里的路径发生了变化
                     watch : true,
                     tex : true,  //开启LTex支持
@@ -104,79 +104,14 @@ Bob-->Alice: I am good thanks!
                     editorTheme : "default",
                     toolbarIcons : [
                     "undo", "redo", "|",
-                     "file_new","file_open","file_save","|",
                      "bold", "italic", "quote", "ucwords", "uppercase", "lowercase", "|", 
                      "list-ul", "list-ol", "hr", "|", 
                      "link", "reference-link", "image", "code", "preformatted-text", "code-block", "|",
                      "table" , "datetime", "emoji", "html-entities", "pagebreak", "|", 
-                     "goto-line", "watch", "preview", "fullscreen", "clear", "search", "||",
-                     "pdf","html","help", "info"
+                     "goto-line", "watch", "preview", "fullscreen", "clear", "search"
                     ],
-
-                    //定义工具栏图标
-                    toolbarIconsClass : {
-                        file_new : "fa-file",
-                        file_open : "fa-folder-open",
-                        file_save : "fa-save",
-                        pdf  : "fa-print",
-                        html : "fa-download"
-                    },
-
-                    ///定义工具栏提示文本
-                    lang : {
-                        toolbar : {
-                            file_new : "新建",
-                            file_open : "打开",
-                            file_save : "保存", 
-                            pdf : "导出为PDF",
-                            html : "导出为HTML"
-                        }
-                    },
-
-                    //定义工具栏事件
-                    toolbarHandlers : {
-                        /**
-                         * @param {Object}      cm         CodeMirror对象
-                         * @param {Object}      icon       图标按钮jQuery元素对象
-                         * @param {Object}      cursor     CodeMirror的光标对象，可获取光标所在行和位置
-                         * @param {String}      selection  编辑器选中的文本
-                         */
-                        file_new : function(cm, icon, cursor, selection) {
-
-                            //清空编辑器内容
-                            editor.setMarkdown("");
-                            //重置文件路径
-                            isSave=false;
-                            currentFile="";
-                            setWindowTitle("新建Markdown文件-SmarkEditor")
-                        },
-                        
-                        file_open : function(cm, icon, cursor, selection) {
-                            $("#fileOpen").trigger("click");
-                        },
-
-                        file_save : function(cm, icon, cursor, selection) {
-                            //设置存储类型为markdown
-                            saveMode="markdown";
-                            //如果文件从未保存则弹出对话框进行保存
-                            //否则直接进行保存
-                            if(isSaved){
-                                writeFile(currentFile,editor.getValue());
-                                setWindowTitle(currentFile + "-" + "SmarkEditor")
-                            }else{
-                                $("#fileSave").trigger("click");
-                            }
-                        },
-
-                        html : function(cm, icon, cursor, selection) {
-                            //设置存储类型为html
-                            saveMode="html";
-                            //否则直接进行保存
-                            $("#fileSave").trigger("click");
-                        }
-                    },
                     onload : function(){
-                        initWindow();
+                        initWindow(editor);
                         //console.log("test");
                         //$("[type=\"file\"]").bind("change", function(){
                            // alert($(this).val());
@@ -185,26 +120,28 @@ Bob-->Alice: I am good thanks!
                         //});
                         //initContextMenu();
                         $("#fileSave").change(function(evt) {
-                            //获取当前编辑的文件路径
-                            currentFile=$(this).val();
+                            editFile=$(this).val();
                             isSaved=true;
-                            //根据存储类型
-                            if(saveMode=="markdown"){
-                                writeFile(currentFile,editor.getValue());
-                            }else if(saveMode=="html"){
-                                writeFile(currentFile,editor.getHTML());
+                            switch(saveMode)
+                            {
+                                case "markdown":
+                                writeFile(editFile,editor.getValue());
+                                win.title=editFile + "-" + "SmarkEditor";
+                                break;
+                                case "html":
+                                $(this).attr('nwsaveas','test.html');
+                                var savepath=filepath.replace(/.md/,".html");
+                                writeFile(savepath,editor.getHtml());
+                                break;
+                                case "pdf":
+                                var savepath=filepath.replace(/.md/,".pdf");
+                                writeFile(savepath,editor.getHtml());
+                                break;
                             }
-                            
                         });
+
                         $("#fileOpen").change(function(evt) {
-                            //获取当前编辑的文件路径
-                            currentFile=$(this).val();
-                            isSaved=true;
-                            //读取数据
-                            var data=readFile($(this).val());
-                            editor.setMarkdown(data);
-                            //设置编辑器窗口名称
-                            setWindowTitle(currentFile + "-" + "SmarkEditor");
+                            onFileReadHandle($(this).val(),editor);
                          });
                     }
                 });

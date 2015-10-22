@@ -1,4 +1,4 @@
-/*
+﻿     /*
  * Editor.md
  *
  * @file        editormd.amd.js 
