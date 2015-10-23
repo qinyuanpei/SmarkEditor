@@ -8,145 +8,15 @@
     <body>
         <div id="layout">
             <div id="editormd">                
-                <textarea id="textarea" style="display:none;"># 欢迎使用 SmarkEditor 编辑器
-
-SmarkEditor是一款基于[Editor.md](https://pandao.github.io/editor.md)的Markdown离线编辑器，通过这个编辑器你可以更加专注于写作本身，SmarkEditor可以帮助你快速撰写技术文章或者是学术论文，它提供了基本的**Markdown**支持（普通文章写作）、**代码高亮**支持（技术文章写作）和**LaTeX**支持（学术文章写作）。你可以从[这里]()获取SmarkEditor，目前SmarkEditor仅仅提供了Windows平台的支持。
-
-SmarkEditor提供了通用 Markdown / CommonMark 和 GFM (GitHub Flavored Markdown) 风格的语法。Markdown 是一种方便记忆、书写的纯文本标记语言，用户可以使用这些标记符号以最小的输入代价生成极富表现力的文档。譬如你此刻正在阅读的这份文档就是使用Markdown进行编写的。在常规的Markdown语法支持的基础上SmarkEditor同时支持以下扩展语法：
-
-### 1、待办事项列表
-- [ ] 允许用户对编辑器进行设置
-- [ ] 允许用户选择编辑器样式
-- [x] 允许在编辑器中驻留打开的文件
-- [x] 允许将文章推送到有道云笔记
-- [x] 允许将文章推动到Hexo
-
-### 2、书写LaTeX公式
-
-$$E=mc^2$$
-
-### 3. 代码高亮
-```python
-$("#fileSave").change(function(evt) {
-   //获取当前编辑的文件路径
-   currentFile=$(this).val();
-   isSaved=true;
-   //根据存储类型
-   if(saveMode=="markdown"){
-      writeFile(currentFile,editor.getValue());
-   }else if(saveMode=="html"){
-      writeFile(currentFile,editor.getHTML());
-   }
-});
-```
-
-### 4、绘制流程图
-```flow
-st=>start: Start
-op=>operation: Your Operation
-cond=>condition: Yes or No?
-e=>end
-
-st->op->cond
-cond(yes)->e
-cond(no)->op
-```
-
-### 5、绘制序列图
-```seq
-Alice->Bob: Hello Bob, how are you?
-Note right of Bob: Bob thinks
-Bob-->Alice: I am good thanks!
-```
-
-### 6. 绘制表格
-
-| 项目        | 价格   |  数量  |
-| --------   | -----:  | :----:  |
-| 计算机     | \$1600 |   5     |
-| 手机        |   \$12   |   12   |
-| 管线        |    \$1    |  234  |
-
-
-
-
-
-
-                </textarea>
+                <textarea id="textarea" style="display:none;"></textarea>
             </div>
         </div> 
         <input style="display:none;" id="fileOpen" type="file" accept=".md"/>
-        <input style="display:none;" id="fileSave" type="file" nwsaveas="default"/>      
+        <input style="display:none;" id="mdSave" type="file" nwsaveas="default"/> 
+        <input style="display:none;" id="htmlSave" type="file" nwsaveas="default"/>
+        <input style="display:none;" id="pdfSave" type="file" nwsaveas="default"/>
         <script src="jquery.min.js"></script>
         <script src="editormd.js"></script>
-        <script type="text/javascript">
-            $(function() {
-
-                //存储类型默认为markdown
-                var saveMode = "markdown";
-
-                //定义编辑器属性
-                var editor = editormd("editormd", {
-                    width: "100%",
-                    height: "720",
-                    path : 'lib/', //因为改变了项目结构，所以这里的路径发生了变化
-                    watch : true,
-                    tex : true,  //开启LTex支持
-                    flowChart : true, //开启流程图支持 
-                    sequenceDiagram : true,  //开启序列图支持
-                    previewCodeHighlight : true,
-                    todoList : true,
-
-
-                    //定义编辑器主题
-                    theme : "default",
-                    previewTheme : "default",
-                    editorTheme : "default",
-                    toolbarIcons : [
-                    "undo", "redo", "|",
-                     "bold", "italic", "quote", "ucwords", "uppercase", "lowercase", "|", 
-                     "list-ul", "list-ol", "hr", "|", 
-                     "link", "reference-link", "image", "code", "preformatted-text", "code-block", "|",
-                     "table" , "datetime", "emoji", "html-entities", "pagebreak", "|", 
-                     "goto-line", "watch", "preview", "fullscreen", "clear", "search"
-                    ],
-                    onload : function(){
-                        initWindow(editor);
-                        //console.log("test");
-                        //$("[type=\"file\"]").bind("change", function(){
-                           // alert($(this).val());
-                           // testEditor.cm.replaceSelection($(this).val());
-                           // console.log($(this).val(), testEditor);
-                        //});
-                        //initContextMenu();
-                        $("#fileSave").change(function(evt) {
-                            editFile=$(this).val();
-                            isSaved=true;
-                            switch(saveMode)
-                            {
-                                case "markdown":
-                                writeFile(editFile,editor.getValue());
-                                win.title=editFile + "-" + "SmarkEditor";
-                                break;
-                                case "html":
-                                $(this).attr('nwsaveas','test.html');
-                                var savepath=filepath.replace(/.md/,".html");
-                                writeFile(savepath,editor.getHtml());
-                                break;
-                                case "pdf":
-                                var savepath=filepath.replace(/.md/,".pdf");
-                                writeFile(savepath,editor.getHtml());
-                                break;
-                            }
-                        });
-
-                        $("#fileOpen").change(function(evt) {
-                            onFileReadHandle($(this).val(),editor);
-                         });
-                    }
-                });
-            });
-        </script>
         <script src="extend.js"></script>
     </body>
 </html>

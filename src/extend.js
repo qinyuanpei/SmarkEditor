@@ -5,6 +5,38 @@
  **/
 
 
+//初始化编辑器
+var editor = editormd("editormd", {
+    width: "100%",
+    height: "720",
+    path : 'lib/', //因为改变了项目结构，所以这里的路径发生了变化
+    watch : true,
+    tex : true,  //开启LTex支持
+    flowChart : true, //开启流程图支持 
+    sequenceDiagram : true,  //开启序列图支持
+    previewCodeHighlight : true,
+    todoList : true,
+
+    //定义编辑器主题
+    theme : "default",
+    previewTheme : "default",
+    editorTheme : "default",
+    toolbarIcons : 
+    [
+      "undo", "redo", "|",
+      "bold", "italic", "quote", "ucwords", "uppercase", "lowercase", "|", 
+      "list-ul", "list-ol", "hr", "|", 
+      "link", "reference-link", "image", "code", "preformatted-text", "code-block", "|",
+      "table" , "datetime", "emoji", "html-entities", "pagebreak", "|", 
+      "goto-line", "watch", "preview", "fullscreen", "clear", "search"
+    ],
+    onload : function()
+    {
+      initWindow(editor);
+      initTrigger();
+    }
+  });
+
 //引入NodeJS文件系统模块
 var fs = require('fs');
 //引入NodeWebkit相关模块
@@ -19,9 +51,6 @@ var isSaved=false;
 
 //当前编辑的文件
 var editFile;
-
-//存储模式
-var saveMode="markdown";
 
 //上下问菜单
 var contextMenu;
@@ -57,8 +86,43 @@ function initWindow(ed)
   win.setPosition("center");
   //初始化当前菜单栏
   initMenuBar(ed);
+  //初始化当前上下文菜单
   InitContextMenu(ed);
 }
+
+/**
+ * 初始化页面中的触发器             
+ */
+function initTrigger()
+{
+  //打开文件
+  $("#fileOpen").change(function(evt) {
+    onFileReadHandle($(this).val(),editor);
+  });
+
+  //保存Markdown
+  $("#mdSave").change(function(evt) {
+    editFile=$(this).val();
+    isSaved=true;
+    writeFile(editFile,editor.getMarkdown());
+    win.title=editFile + "-" + "SmarkEditor";
+    alert("在这里处理保存markdown的逻辑：" + savepath);
+  });
+
+  //导出PDF
+  $("#pdfSave").change(function(evt) {
+    var savepath=$(this).val().replace(/.md/,".pdf");
+    alert("在这里处理导出PDF的逻辑：" + savepath);
+  });
+
+  //导出HTML
+  $("#htmlSave").change(function(evt) {
+    var savepath=$(this).val().replace(/.md/,".html");
+    //var htmlText="我是测试的HTML" + editor.getHTML();
+    writeFile(savepath,getWholeHTML(editor.getHTML()));
+  });
+}
+
 
 /**
  * 初始化当前菜单栏
@@ -155,8 +219,7 @@ function getFileMenu(ed)
   fileMenu.append(new gui.MenuItem({
     label: '保存    Ctrl+S',
     click: function(){
-      saveMode="markdown";
-      onFileSaveHandle(editFile,ed);
+      saveMarkdown(editFile,ed);
     }
   }));
 
@@ -164,8 +227,7 @@ function getFileMenu(ed)
   fileMenu.append(new gui.MenuItem({ 
     label: '导出为PDF ',
     click: function(){
-      saveMode="pdf";
-      onFileSaveHandle(editFile,ed);
+      savePDF();
     }     
   }));
 
@@ -173,8 +235,7 @@ function getFileMenu(ed)
   fileMenu.append(new gui.MenuItem({ 
     label: '导出为HTML',
     click: function(){
-      saveMode="html";
-      onFileSaveHandle(editFile,ed);
+      saveHTML();
     }
   }));
 
@@ -343,29 +404,6 @@ function onFileReadHandle(filepath,ed)
 }
 
 /*
- * 写入文件操作
- * 参数：文件路径
- * 参数：存储类型[markdown,html,pdf]
- * 参数: 编辑器对象
- */
-function onFileSaveHandle(filepath,ed)
-{
-  editFile=filepath;
-  switch(saveMode)
-  {
-    case "markdown":
-    saveMarkdown(editFile,ed);
-    break;
-    case "html":
-    saveHTML(editFile,ed);
-    break;
-    case "pdf":
-    savePDF(editFile,ed);
-    break;
-  }
-}
-
-/*
  * 新建文件操作
  * 参数: 编辑器对象
  */
@@ -374,7 +412,7 @@ function onFileNewHandle(ed)
   ed.clear();
   isSaved=false;
   editFile="";
-  win.title="新建Markdown文件-SmarkEditor";
+  win.title="新建Markdown文件.md-SmarkEditor";
 }
 
 /*
@@ -386,9 +424,9 @@ function saveMarkdown(filepath,ed)
 {
   if(isSaved==false){
       //设置对话框文件类型
-      $("#fileSave").attr('accept','.md');
+      $("#mdSave").attr('accept','.md');
       //打开对话框
-      $("#fileSave").trigger("click");
+      $("#mdSave").trigger("click");
     }else{
       writeFile(filepath,ed.getValue());
       win.title=filepath + "-" + "SmarkEditor";
@@ -397,29 +435,54 @@ function saveMarkdown(filepath,ed)
 
 /*
  * 保存HTML
- * 参数：文件路径
- * 参数: 编辑器对象
  */
-function saveHTML(filepath,ed)
+function saveHTML()
 {
   //设置对话框文件类型
-  $("#fileSave").attr('accept','.html');
+  $("#htmlSave").attr('accept','.html');
   //打开对话框
-  $("#fileSave").trigger("click");
+  $("#htmlSave").trigger("click");
 
 }
 
 /*
  * 保存PDF
- * 参数：文件路径
- * 参数: 编辑器对象
  */
-function savePDF(filepath,ed)
+function savePDF()
 {
   //设置对话框文件类型
-  $("#fileSave").attr('accept','.pdf');
+  $("#pdfSave").attr('accept','.pdf');
   //打开对话框
-  $("#fileSave").trigger("click");
+  $("#pdfSave").trigger("click");
+}
+
+/*
+ * 返回完整的HTML代码
+ * 参数: 编辑器默认返回的HTML代码
+ */
+function getWholeHTML(htmlOfEditor)
+{
+  var html = "";
+  html += "<!DOCTYPE html>";
+  html +=   "<html lang='zh'>";
+  html +=   "<head>";
+  html +=     "<meta charset='utf-8' />";
+  html +=     "<title>SmarkEditor</title>";         
+  html +=     "<link rel='stylesheet' href='http://qinyuanpei.com/smarkeditor/assets/editormd.preview.css' />";
+  html +=     "<style>";
+  html +=       ".editormd-html-preview {";
+  html +=          "width: 90%";
+  html +=          "margin: 0 auto";
+  html +=       "}"; 
+  html +=     "</style>";
+  html +=   "</head>";
+  html +=   "<body>";
+  html +=   "<div class='markdown-body editormd-html-preview'>";
+  html +=   htmlOfEditor;
+  html +=   "</div>";
+  html +=   "</body>";
+  html +=   "</html>";
+  return html;
 }
 
 
