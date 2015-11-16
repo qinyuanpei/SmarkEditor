@@ -2,21 +2,21 @@
 	"name": "SmarkEditor",
 	"main": "index.html",
   "nodejs": true,
-	"description": "demo app of node-webkit",
-  	"version": "0.1.0",
-  	"keywords": [ "demo", "node-webkit" ],
+	"description": "a markdown editor based on editor.ma",
+  	"version": "1.0.2",
+  	"keywords": [ "markdown", "node-webkit" ],
  	"window": {
     "title": "SmarkEditor",
     "icon": "link.png",
     "toolbar": false,
     "frame": true,
-    "width": 1024,
+    "width": 1366,
     "height": 768,
     "position": "center",
     "min_width": 400,
     "min_height": 200,
-    "max_width": 1920,
-    "max_height": 1080
+    "max_width": 1366,
+    "max_height": 768
   },
   "webkit": {
     "plugin": true

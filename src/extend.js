@@ -23,12 +23,10 @@ var editor = editormd("editormd", {
     editorTheme : "default",
     toolbarIcons : 
     [
-      "undo", "redo", "|",
-      "bold", "italic", "quote", "ucwords", "uppercase", "lowercase", "|", 
-      "list-ul", "list-ol", "hr", "|", 
-      "link", "reference-link", "image", "code", "preformatted-text", "code-block", "|",
-      "table" , "datetime", "emoji", "html-entities", "pagebreak", "|", 
-      "goto-line", "watch", "preview", "fullscreen", "clear", "search"
+      "bold", "italic", "quote", "ucwords", "uppercase", "lowercase", 
+      "list-ul", "list-ol", "hr", 
+      "link", "reference-link", "image", "code", "preformatted-text", "code-block",
+      "table" , "datetime"
     ],
     onload : function()
     {
@@ -88,6 +86,9 @@ function initWindow(ed)
   initMenuBar(ed);
   //初始化当前上下文菜单
   InitContextMenu(ed);
+  //初始化快捷键
+  initKeyBind()
+  //ed.fullscreen();
 }
 
 /**
@@ -107,19 +108,6 @@ function initTrigger()
     writeFile(editFile,editor.getMarkdown());
     win.title=editFile + "-" + "SmarkEditor";
     alert("在这里处理保存markdown的逻辑：" + savepath);
-  });
-
-  //导出PDF
-  $("#pdfSave").change(function(evt) {
-    var savepath=$(this).val().replace(/.md/,".pdf");
-    alert("在这里处理导出PDF的逻辑：" + savepath);
-  });
-
-  //导出HTML
-  $("#htmlSave").change(function(evt) {
-    var savepath=$(this).val().replace(/.md/,".html");
-    //var htmlText="我是测试的HTML" + editor.getHTML();
-    writeFile(savepath,getWholeHTML(editor.getHTML()));
   });
 }
 
@@ -223,22 +211,13 @@ function getFileMenu(ed)
     }
   }));
 
-  //'导出为PDF'菜单项
-  fileMenu.append(new gui.MenuItem({ 
-    label: '导出为PDF ',
+  //'另存为'菜单项
+  fileMenu.append(new gui.MenuItem({
+    label: '另存为    Ctrl+Shift+S',
     click: function(){
-      savePDF();
-    }     
-  }));
-
-  //'导出为HTML'菜单项
-  fileMenu.append(new gui.MenuItem({ 
-    label: '导出为HTML',
-    click: function(){
-      saveHTML();
+      $("#mdSave").trigger("click");
     }
   }));
-
   return fileMenu;
 }
 
@@ -250,6 +229,21 @@ function getEditMenu(ed)
 {
   //创建'编辑'菜单
   var editMenu = new gui.Menu();
+
+  //'撤销'菜单项
+  editMenu.append(new gui.MenuItem({ 
+    label: '撤销    Ctrl+Z',
+    click: function(){
+      ed.undo();
+    } 
+  }));
+
+  editMenu.append(new gui.MenuItem({ 
+    label: '重做    Ctrl+Y',
+    click: function(){
+      ed.redo();
+    } 
+  }));
 
   //'复制'菜单项
   editMenu.append(new gui.MenuItem({ 
@@ -322,21 +316,6 @@ function getViewMenu(ed)
   }));
 
   viewMenu.append(new gui.MenuItem({ 
-    label: '编辑器',
-    type: 'checkbox',
-    checked: 'true',
-    click: function(){
-      if(this.checked==false){
-        ed.previewing();
-        console.log("hide the editor");
-      }else{
-        ed.previewed();
-          console.log("show the editor");
-      }
-    } 
-  }));
-
-  viewMenu.append(new gui.MenuItem({ 
     label: '实时预览',
     type: 'checkbox',
     checked: 'true',
@@ -354,11 +333,45 @@ function getViewMenu(ed)
   }));
 
   viewMenu.append(new gui.MenuItem({ 
-    label: '设置',
+    label: '预览HTML',
     click: function(){
-      
+        ed.previewing();
     } 
   }));
+
+
+  viewMenu.append(new gui.MenuItem({ 
+    label: 'Default主题',
+    click: function(){
+        ed.setTheme('default')
+        ed.setCodeMirrorTheme('default')
+        ed.setPreviewTheme('default')
+    } 
+  }));
+
+  viewMenu.append(new gui.MenuItem({ 
+    label: 'Dark主题',
+    click: function(){
+        ed.setTheme('dark')
+        ed.setCodeMirrorTheme('pastel-on-dark')
+        ed.setPreviewTheme('dark')
+    } 
+  }));
+
+  viewMenu.append(new gui.MenuItem({ 
+    label: 'Monokai主题',
+    click: function(){
+        ed.setTheme('dark')
+        ed.setCodeMirrorTheme('monokai')
+        ed.setPreviewTheme('dark')
+    } 
+  })); 
+  //viewMenu.append(new gui.MenuItem({ 
+    //label: '设置',
+    //click: function(){
+      
+   // } 
+  //}));
 
   return viewMenu;
 }
@@ -388,6 +401,7 @@ function getHelpMenu(ed)
 
   return helpMenu;
 }
+
 
 /*
  * 读取文件操作
@@ -434,56 +448,33 @@ function saveMarkdown(filepath,ed)
 }
 
 /*
- * 保存HTML
+ *  初始化快捷键
  */
-function saveHTML()
+function initKeyBind()
 {
-  //设置对话框文件类型
-  $("#htmlSave").attr('accept','.html');
-  //打开对话框
-  $("#htmlSave").trigger("click");
+    var keyMap = 
+    {
+        "Ctrl-N": function(cm) {
+          onFileNewHandle(editor);
+        },
+        "Ctrl-O": function(cm) {
+          $("#fileOpen").trigger("click");
+        },
+        "Ctrl-S": function(cm) {
+          saveMarkdown(editFile,editor);
+        },
+        "Ctrl-Shift-S": function(cm) {
+          $("#mdSave").trigger("click");
+        },
+        "Ctrl-Z": function(cm) { 
+          cm.execCommand("selectAll");
+        },
+    };
 
+    editor.addKeyMap(keyMap); 
 }
 
-/*
- * 保存PDF
- */
-function savePDF()
-{
-  //设置对话框文件类型
-  $("#pdfSave").attr('accept','.pdf');
-  //打开对话框
-  $("#pdfSave").trigger("click");
-}
 
-/*
- * 返回完整的HTML代码
- * 参数: 编辑器默认返回的HTML代码
- */
-function getWholeHTML(htmlOfEditor)
-{
-  var html = "";
-  html += "<!DOCTYPE html>";
-  html +=   "<html lang='zh'>";
-  html +=   "<head>";
-  html +=     "<meta charset='utf-8' />";
-  html +=     "<title>SmarkEditor</title>";         
-  html +=     "<link rel='stylesheet' href='http://qinyuanpei.com/smarkeditor/assets/editormd.preview.css' />";
-  html +=     "<style>";
-  html +=       ".editormd-html-preview {";
-  html +=          "width: 90%";
-  html +=          "margin: 0 auto";
-  html +=       "}"; 
-  html +=     "</style>";
-  html +=   "</head>";
-  html +=   "<body>";
-  html +=   "<div class='markdown-body editormd-html-preview'>";
-  html +=   htmlOfEditor;
-  html +=   "</div>";
-  html +=   "</body>";
-  html +=   "</html>";
-  return html;
-}
 
 
 　
